@@ -799,7 +799,7 @@ class _NamespaceInstaller(namespaces.Installer):
 _FINDER_TEMPLATE = """\
 from __future__ import annotations
 import sys
-from importlib.machinery import ModuleSpec, PathFinder
+from importlib.machinery import ModuleSpec, PathFinder, BuiltinImporter
 from importlib.machinery import all_suffixes as module_suffixes
 from importlib.util import spec_from_file_location
 from itertools import chain
@@ -869,10 +869,16 @@ class _EditableNamespaceFinder:  # PathEntryFinder
     def find_module(cls, _fullname) -> None:
         return None
 
-
 def install():
-    if not any(finder == _EditableFinder for finder in sys.meta_path):
-        sys.meta_path.append(_EditableFinder)
+    meta_path_index = 0
+    for i, finder in enumerate(sys.meta_path):
+        if finder == _EditableFinder:
+            break
+        elif finder == BuiltinImporter:
+            # Insert _EditableFinder after BuiltinImporter
+            meta_path_index = i + 1
+    else:
+        sys.meta_path.insert(meta_path_index, _EditableFinder)
 
     if not NAMESPACES:
         return
