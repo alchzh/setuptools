@@ -822,8 +822,8 @@ class _EditableFinder:  # MetaPathFinder
         # To avoid problems with case sensitivity in the file system we delegate
         # to the importlib.machinery implementation.
         parent, _, child = fullname.rpartition(".")
-        if parent and parent in MAPPING:
-            return PathFinder.find_spec(fullname, path=[MAPPING[parent]])
+        if parent and parent in MAPPING and parent not in path:
+            return PathFinder.find_spec(fullname, path=[MAPPING[parent], *path])
 
         # Other levels of nesting should be handled automatically by importlib
         # using the parent path.
